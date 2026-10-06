@@ -1,0 +1,3098 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Detalhes da nota — CEMIG ON (clone mock)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+    />
+    <style>
+      :root {
+        --inst-50: #e8f4ee;
+        --inst-500: #1f8a5b;
+        --inst-600: #127a4c;
+        --inst-700: #0d5c39;
+        --n-0: #fff;
+        --n-50: #f5f5f5;
+        --n-100: #e6e6e6;
+        --n-200: #dcdcdc;
+        --n-400: #a3a3a3;
+        --n-500: #6b6b6b;
+        --n-600: #3d3d3d;
+        --n-700: #262626;
+        --erro-50: #fdeaea;
+        --erro-300: #f3a6ab;
+        --erro-600: #d32f3a;
+        --alerta-300: #f2dd85;
+        --alerta-700: #e0bc00;
+        --digital-50: #e9f7ef;
+        --blue: #4c7be1;
+        --yellow: #ffd500;
+        --font:
+          "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial,
+          sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        font-family: var(--font);
+        color: var(--n-700);
+        background: #fff;
+        -webkit-font-smoothing: antialiased;
+      }
+      button {
+        font-family: inherit;
+      }
+      p {
+        margin: 0;
+      }
+
+      .topbar {
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        border-bottom: 1px solid var(--n-100);
+        background: #fff;
+      }
+      .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .icon-btn {
+        width: 40px;
+        height: 40px;
+        border: 0;
+        background: transparent;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        color: var(--n-700);
+      }
+      .icon-btn:hover {
+        background: var(--n-50);
+      }
+      .topbar h1 {
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0;
+      }
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 1px solid #e4e4e7;
+        display: grid;
+        place-items: center;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 900;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+      }
+      .overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .drawer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px;
+        background: #fff;
+        z-index: 901;
+        transform: translateX(-100%);
+        transition: transform 0.25s;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+      }
+      .drawer.open {
+        transform: none;
+      }
+      .drawer-brand {
+        height: 72px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 20px;
+        border-bottom: 1px solid var(--n-100);
+        font-weight: 700;
+        font-size: 18px;
+        color: var(--inst-700);
+      }
+      .brand-logo {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--inst-600);
+        display: grid;
+        place-items: center;
+        color: #fff;
+      }
+      .drawer nav {
+        padding: 12px;
+      }
+      .nav-group {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--n-500);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 14px 12px 6px;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        color: var(--n-600);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .nav-item:hover {
+        background: var(--n-50);
+      }
+      .nav-item.active {
+        background: var(--inst-50);
+        color: var(--inst-700);
+      }
+
+      .page {
+        padding: 36px 40px 80px;
+      }
+      .crumbs {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .crumbs a {
+        color: #71717a;
+        text-decoration: none;
+      }
+      .crumbs .cur {
+        color: var(--inst-700);
+      }
+      .page-title {
+        font-size: 24px;
+        font-weight: 600;
+        margin-top: 24px;
+      }
+
+      .tabs {
+        position: sticky;
+        top: 0;
+        z-index: 500;
+        background: #fff;
+        margin-top: 32px;
+        padding: 16px 0 0;
+      }
+      .tablist {
+        display: flex;
+        gap: 32px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .tablist::-webkit-scrollbar {
+        display: none;
+      }
+      .tab {
+        position: relative;
+        background: none;
+        border: 0;
+        padding: 6px 12px 14px;
+        font-size: 15px;
+        color: var(--n-600);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .tab:hover {
+        color: var(--inst-700);
+      }
+      .tab.active {
+        color: var(--inst-700);
+      }
+      .tab.active::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: 4px;
+        transform: translateX(-50%);
+        width: 76px;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--inst-700);
+      }
+      .nota-num {
+        font-size: 22px;
+        color: var(--n-600);
+        padding: 8px 16px 0;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 24px 0 24px;
+        font-size: 24px;
+        font-weight: 600;
+        scroll-margin-top: 90px;
+      }
+      .section-title svg {
+        flex: none;
+      }
+      hr.sep {
+        border: 0;
+        height: 1px;
+        background: var(--n-100);
+        margin: 32px 0;
+      }
+
+      .ov-row {
+        display: flex;
+        gap: 16px;
+      }
+      .ov-cell {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .ov-h {
+        height: 32px;
+        padding: 0 12px;
+        display: flex;
+        align-items: center;
+        background: var(--n-50);
+        font-weight: 700;
+        color: var(--n-600);
+      }
+      .ov-v {
+        height: 56px;
+        padding: 0 12px;
+        display: flex;
+        align-items: center;
+        color: var(--n-600);
+        background: #fafafa;
+      }
+      .badge-done {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 30px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        background: var(--digital-50);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--n-600);
+      }
+
+      .card {
+        border: 1px solid var(--n-200);
+        border-radius: 8px;
+        margin-bottom: 24px;
+        padding-bottom: 8px;
+        background: #fff;
+      }
+      .card-h {
+        height: 44px;
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid var(--n-200);
+        font-weight: 600;
+        color: var(--n-700);
+      }
+      .grid {
+        display: grid;
+        gap: 8px 8px;
+        padding: 16px;
+      }
+      .g4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .g3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .span2 {
+        grid-column: span 2;
+      }
+      .g-sol {
+        grid-template-columns:
+          minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr)
+          minmax(0, 1fr);
+      }
+      .field .val.hl {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--inst-700);
+        background: var(--inst-50);
+        border-bottom: 2px solid var(--inst-500);
+      }
+      .addr-last {
+        grid-column: 1/-1;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        align-items: end;
+      }
+      .field label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--n-700);
+        padding-bottom: 6px;
+      }
+      .field .val {
+        min-height: 36px;
+        padding: 8px 12px;
+        font-size: 14px;
+        color: var(--n-700);
+        border-bottom: 1px solid var(--n-100);
+        border-radius: 4px 4px 0 0;
+        background: #fcfcfc;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .field .val.empty {
+        color: transparent;
+      }
+      .field input {
+        width: 100%;
+        height: 36px;
+        border: 1px solid var(--n-200);
+        border-radius: 6px;
+        padding: 0 12px;
+        font: inherit;
+        font-size: 14px;
+        background: #fff;
+      }
+      .field input:focus {
+        outline: none;
+        border-color: var(--inst-500);
+        box-shadow: 0 0 0 1px var(--inst-500);
+      }
+      .field .lbl-sm {
+        font-size: 12px;
+        font-weight: 500;
+        color: #71717a;
+      }
+      .coord {
+        grid-column: 1/-1;
+        display: flex;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        padding-top: 8px;
+      }
+      .coord .field {
+        flex: 0 1 200px;
+        min-width: 0;
+      }
+      .coord .coord-head {
+        flex: none;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .seg {
+        display: inline-flex;
+        gap: 2px;
+        height: 36px;
+        padding: 3px;
+        border-radius: 8px;
+        background: var(--n-50);
+        border: 1px solid var(--n-100);
+      }
+      .seg button {
+        border: 0;
+        background: transparent;
+        padding: 0 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--n-500);
+        cursor: pointer;
+      }
+      .seg button.active {
+        background: #fff;
+        color: var(--n-700);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      }
+      .coord-grp {
+        display: contents;
+      }
+      .coord-grp[hidden] {
+        display: none;
+      }
+      .coord-save {
+        padding-bottom: 2px;
+      }
+      .eq-head {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        padding: 16px 16px 0;
+      }
+      .eq-head .subtitle {
+        padding: 0;
+      }
+      .eq-info {
+        padding-top: 0;
+      }
+      [data-caixa-tbl][hidden] {
+        display: none;
+      }
+      .row-radios {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 18px 16px 4px;
+        flex-wrap: wrap;
+        font-size: 14px;
+      }
+      .row-radios .lead {
+        font-size: 15px;
+        color: var(--n-600);
+      }
+      .radio,
+      .check {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--n-700);
+        cursor: pointer;
+      }
+      .radio input,
+      .check input {
+        margin: 0;
+        width: 16px;
+        height: 16px;
+        accent-color: var(--inst-700);
+      }
+      .radio.disabled {
+        color: var(--n-500);
+        cursor: not-allowed;
+      }
+      .subtitle {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--n-500);
+        padding: 16px 16px 0;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s;
+      }
+      .btn-primary {
+        border: 0;
+        background: var(--inst-600);
+        color: #fff;
+        height: 36px;
+        padding: 0 16px;
+      }
+      .btn-primary:hover {
+        background: var(--inst-700);
+      }
+      .btn-primary:disabled {
+        background: var(--n-100);
+        color: var(--n-400);
+        cursor: not-allowed;
+      }
+      .btn-sm {
+        height: 32px;
+        padding: 0 12px;
+        font-size: 12px;
+      }
+      .btn-outline {
+        border: 1px solid var(--inst-700);
+        background: #fff;
+        color: var(--n-700);
+        height: 40px;
+        padding: 0 16px;
+      }
+      .btn-outline:hover {
+        background: var(--inst-50);
+      }
+      .actions-end {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 24px;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table.tbl {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        min-width: 760px;
+      }
+      .tbl th {
+        background: var(--n-50);
+        text-align: left;
+        font-weight: 700;
+        color: var(--n-600);
+        padding: 12px 16px;
+        height: 40px;
+        border-bottom: 1px solid var(--n-100);
+      }
+      .tbl td {
+        padding: 16px;
+        height: 70px;
+        color: var(--n-600);
+        border-bottom: 1px solid var(--n-100);
+        background: #fafafa;
+      }
+      .tbl th:last-child,
+      .tbl td:last-child {
+        text-align: center;
+      }
+      .tbl-compact td {
+        height: auto;
+        padding: 10px 16px;
+      }
+      .tbl th.num,
+      .tbl td.num {
+        text-align: right;
+      }
+      .tbl tfoot td {
+        font-weight: 700;
+        color: var(--n-700);
+        background: var(--n-50);
+      }
+      .medida-code {
+        display: inline-block;
+        border: 1px solid var(--n-500);
+        border-radius: 6px;
+        padding: 3px 14px;
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+      .medida-desc {
+        font-weight: 700;
+        font-size: 13px;
+        color: var(--n-600);
+      }
+      .prazo {
+        font-weight: 700;
+        color: var(--inst-700);
+        font-size: 13px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 30px;
+        padding: 0 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--n-600);
+        white-space: nowrap;
+      }
+      .pill .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+      }
+      .pill-erro {
+        background: var(--erro-50);
+      }
+      .pill-erro .dot {
+        background: var(--erro-600);
+      }
+      .pill-alerta {
+        border: 1px solid var(--alerta-700);
+        background: transparent;
+      }
+      .pill-alerta .dot {
+        background: var(--alerta-700);
+        width: 10px;
+        height: 10px;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 32px;
+        align-items: start;
+      }
+      .map-box {
+        position: relative;
+        width: 100%;
+        height: clamp(350px, 60vh, 560px);
+        border-radius: 10px;
+        overflow: hidden;
+        background: #e8ece9;
+      }
+      .map-box .leaflet-container {
+        width: 100%;
+        height: 100%;
+        font-family: var(--font);
+      }
+      .map-fallback {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        color: var(--n-500);
+        font-size: 14px;
+      }
+      .opacity-ctl {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 450;
+        background: #fff;
+        border-radius: 6px;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+        padding: 8px 20px;
+        width: 240px;
+        text-align: center;
+      }
+      .opacity-ctl p {
+        font-size: 15px;
+        margin-bottom: 6px;
+      }
+      .opacity-ctl input {
+        width: 100%;
+        accent-color: var(--n-700);
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px 28px;
+        margin: 20px 0;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--n-600);
+      }
+      .pin {
+        width: 14px;
+        height: 14px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+      }
+      .near-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        border: 1px solid var(--n-100);
+        border-radius: 8px;
+        background: #fff;
+        font-size: 14px;
+        color: var(--n-500);
+      }
+      .near-row .pin {
+        margin: 0 4px;
+      }
+      .near-num {
+        width: 140px;
+        font-weight: 700;
+        color: var(--n-600);
+      }
+      .near-addr {
+        flex: 1;
+        min-width: 140px;
+      }
+      .near-tec {
+        width: 90px;
+      }
+      .chip {
+        border-radius: 16px;
+        background: #e5e7eb;
+        padding: 4px 12px;
+        font-size: 14px;
+        color: var(--n-700);
+      }
+
+      .success-box {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        padding: 16px;
+        border-radius: 6px;
+        border: 1px solid #bbf7d0;
+        background: #f0fdf4;
+        margin-top: 20px;
+      }
+      .success-box .ic {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #22c55e;
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .success-box b {
+        display: block;
+        color: #166534;
+        font-weight: 500;
+      }
+      .success-box small {
+        display: block;
+        color: #15803d;
+        font-size: 14px;
+        margin-top: 4px;
+      }
+
+      .alert {
+        display: flex;
+        border: 1px solid var(--alerta-700);
+        border-radius: 8px;
+        min-height: 64px;
+        overflow: hidden;
+      }
+      .alert-ic {
+        width: 64px;
+        background: var(--alerta-700);
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .alert-body {
+        flex: 1;
+        padding: 16px 16px 16px 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--n-600);
+      }
+      .alert-body b {
+        font-weight: 700;
+      }
+      .alert-body ul {
+        margin: 0;
+        padding-left: 16px;
+      }
+
+      .stats {
+        display: flex;
+        gap: 20px;
+        padding: 24px 0;
+        flex-wrap: wrap;
+      }
+      .stat {
+        flex: 1;
+        min-width: 210px;
+        border: 1px solid var(--n-50);
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(18, 122, 76, 0.12);
+        background: #fff;
+      }
+      .stat.warn {
+        border-color: var(--alerta-300);
+      }
+      .stat.err {
+        border-color: var(--erro-300);
+      }
+      .stat-h {
+        padding: 24px;
+        font-weight: 700;
+        color: var(--n-500);
+        border-bottom: 1px solid var(--n-100);
+      }
+      .stat-b {
+        padding: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .stat-b .num {
+        font-size: 30px;
+        color: var(--n-700);
+      }
+      .stat-b .sub {
+        font-size: 14px;
+        color: var(--n-500);
+      }
+      .stat-ic {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+      }
+
+      .doc-head {
+        display: flex;
+        background: var(--n-50);
+        height: 44px;
+        font-weight: 700;
+        color: var(--n-600);
+      }
+      .doc-head > div,
+      .doc-row > div {
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+      }
+      .doc-row {
+        display: flex;
+        border-bottom: 2px solid #e5e7eb;
+        min-height: 76px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .doc-row:hover {
+        background: #f9fafb;
+      }
+      #docDlg {
+        width: min(1400px, calc(100% - 32px));
+        max-width: none;
+        height: calc(100vh - 32px);
+        max-height: none;
+      }
+      #docDlg[open] {
+        display: flex;
+        flex-direction: column;
+      }
+      .doc-dlg-t {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+      .doc-dlg-pop {
+        margin-left: auto;
+      }
+      /* documento aberto em janela separada */
+      .doc-win {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+      .doc-dlg-t small {
+        font-size: 13px;
+        font-weight: 400;
+        color: var(--n-500);
+        overflow-wrap: anywhere;
+      }
+      .doc-dlg-b {
+        flex: 1;
+        min-height: 0;
+        background: #f9fafb;
+      }
+      /* popup: dados a conferir à esquerda, documento à direita */
+      .doc-view {
+        display: grid;
+        grid-template-columns: minmax(280px, 360px) 1fr;
+        gap: 16px;
+        height: 100%;
+        padding: 16px;
+      }
+      .doc-view > .dv-card {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .dv-side .dv-cmp,
+      .dv-doc .dv-stage {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+      }
+      .dv-doc .dv-stage {
+        align-items: flex-start;
+      }
+      .doc-view iframe {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 420px;
+        border: 0;
+        background: #fff;
+      }
+      @media (max-width: 860px) {
+        .doc-dlg-b {
+          overflow: auto;
+        }
+        .doc-view {
+          grid-template-columns: 1fr;
+          height: auto;
+        }
+        .dv-doc .dv-stage {
+          overflow: visible;
+          overflow-x: auto;
+        }
+      }
+      .dv-card {
+        border: 1px solid var(--n-200);
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fafafa;
+      }
+      .dv-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 56px;
+        padding: 0 24px;
+        background: #ececec;
+        color: var(--n-600);
+        font-size: 17px;
+      }
+      .dv-rot {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--n-600);
+        font: inherit;
+        font-size: 15px;
+        cursor: pointer;
+      }
+      .dv-rot:hover {
+        background: var(--n-200);
+      }
+      .dv-pager {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 10px 0;
+        font-size: 17px;
+      }
+      .dv-pager button {
+        width: 32px;
+        height: 32px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        font-size: 20px;
+        line-height: 1;
+        color: var(--n-700);
+        cursor: pointer;
+      }
+      .dv-pager button:hover:not(:disabled) {
+        background: var(--n-100);
+      }
+      .dv-pager button:disabled {
+        color: var(--n-400);
+        cursor: default;
+      }
+      .dv-stage {
+        display: flex;
+        justify-content: center;
+        padding: 0 16px 24px;
+        overflow-x: auto;
+      }
+      .dv-page {
+        position: relative;
+        flex: none;
+        background: #fff;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+      }
+      .dv-page canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .dv-hl {
+        position: absolute;
+        border-radius: 3px;
+        mix-blend-mode: multiply;
+      }
+      .dv-hl.dv-ok {
+        background: rgba(34, 197, 94, 0.35);
+        outline: 2px solid #127a4c;
+      }
+      .dv-hl.dv-bad {
+        background: rgba(250, 204, 21, 0.45);
+        outline: 2px solid #d97706;
+      }
+      .dv-cmp {
+        padding: 12px 24px 16px;
+        font-size: 15px;
+        color: var(--n-600);
+      }
+      .dv-field {
+        display: grid;
+        gap: 2px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--n-100);
+      }
+      .dv-field:last-child {
+        border-bottom: 0;
+      }
+      .dv-field[data-page] {
+        cursor: pointer;
+      }
+      .dv-field[data-page]:hover b {
+        text-decoration: underline;
+      }
+      .dv-fh {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+        color: var(--n-700);
+      }
+      .dv-field label {
+        margin-top: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--n-500);
+        cursor: inherit;
+      }
+      .dv-field > span {
+        overflow-wrap: anywhere;
+      }
+      .dv-cmp mark {
+        padding: 1px 4px;
+        border-radius: 3px;
+        color: inherit;
+      }
+      .dv-cmp mark.dv-ok {
+        background: rgba(34, 197, 94, 0.25);
+      }
+      .dv-cmp mark.dv-bad {
+        background: rgba(250, 204, 21, 0.4);
+      }
+      .dv-st {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .dv-st.dv-ok {
+        background: #dcfce7;
+        color: #127a4c;
+      }
+      .dv-st.dv-bad {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .dv-st.dv-na {
+        background: var(--n-100);
+        color: var(--n-500);
+      }
+      .c1 {
+        flex: 1;
+        max-width: 33%;
+        flex-direction: column;
+        align-items: flex-start !important;
+        justify-content: center;
+      }
+      .c2 {
+        flex: 2;
+      }
+      .c3 {
+        flex: 1;
+        justify-content: center;
+      }
+      .doc-row .t {
+        font-weight: 500;
+        color: #09090b;
+      }
+      .doc-row .f {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--n-600);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+      }
+      .eye-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
+        border: 0;
+        background: transparent;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+      }
+      .eye-btn:hover {
+        background: var(--n-50);
+      }
+
+      .sim-row {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .sim-card {
+        flex: 1;
+        border: 1px solid var(--n-100);
+        border-radius: 8px;
+        background: #fff;
+        min-width: 0;
+      }
+      .sim-card .h {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--n-100);
+        font-weight: 700;
+        color: var(--n-500);
+      }
+      .sim-card .b {
+        padding: 16px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .sim-card .big {
+        font-size: 30px;
+        color: var(--n-700);
+        letter-spacing: -0.01em;
+      }
+      .sim-card .sub {
+        color: var(--n-500);
+        margin-top: 8px;
+      }
+
+      dialog {
+        border: 0;
+        border-radius: 12px;
+        padding: 0;
+        width: min(560px, calc(100% - 32px));
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+        font-family: var(--font);
+      }
+      dialog::backdrop {
+        background: rgba(0, 0, 0, 0.45);
+      }
+      .dlg-h {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--n-100);
+        font-weight: 700;
+        font-size: 18px;
+      }
+      .dlg-b {
+        padding: 20px 24px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .dlg-b .full {
+        grid-column: 1/-1;
+      }
+      .dlg-b label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--n-500);
+        margin-bottom: 4px;
+      }
+      .dlg-b div > span {
+        font-size: 14px;
+        color: var(--n-700);
+      }
+      .dlg-f {
+        display: flex;
+        justify-content: flex-end;
+        padding: 0 24px 20px;
+      }
+      .pdf-mock {
+        grid-column: 1/-1;
+        height: 220px;
+        border: 1px dashed var(--n-200);
+        border-radius: 8px;
+        background: repeating-linear-gradient(
+          0deg,
+          #fafafa 0 22px,
+          #f0f0f0 22px 23px
+        );
+        display: grid;
+        place-items: center;
+        color: var(--n-500);
+        font-size: 14px;
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translate(-50%, 20px);
+        background: var(--n-700);
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        opacity: 0;
+        transition: 0.25s;
+        z-index: 1000;
+        pointer-events: none;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      .version {
+        position: fixed;
+        bottom: 8px;
+        right: 12px;
+        font-size: 12px;
+        color: #a3a3a3;
+        z-index: 50;
+      }
+
+      @media (max-width: 1024px) {
+        .g4 {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .addr-last {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .two-col {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      @media (max-width: 720px) {
+        .page {
+          padding: 20px 16px 80px;
+        }
+        .topbar {
+          padding: 0 12px;
+        }
+        .ov-row,
+        .sim-row {
+          flex-direction: column;
+          gap: 0;
+        }
+        .sim-row {
+          gap: 16px;
+        }
+        .g4,
+        .g3,
+        .g-sol,
+        .addr-last {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .span2 {
+          grid-column: auto;
+        }
+        .coord .field {
+          flex: 1 1 100%;
+        }
+        .opacity-ctl {
+          width: 180px;
+          padding: 6px 12px;
+        }
+        .doc-head .c2,
+        .doc-row .c2 {
+          flex: 1.2;
+        }
+        .dlg-b {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="overlay" id="overlay"></div>
+    <aside class="drawer" id="drawer" aria-label="Menu">
+      <div class="drawer-brand">
+        <span class="brand-logo"
+          ><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13 2 4 14h7l-1 8 9-12h-7z" /></svg></span
+        >CEMIG ON
+      </div>
+      <nav>
+        <a class="nav-item" href="#"
+          ><svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="7" height="9" rx="1" />
+            <rect x="14" y="3" width="7" height="5" rx="1" />
+            <rect x="14" y="12" width="7" height="9" rx="1" />
+            <rect x="3" y="16" width="7" height="5" rx="1" /></svg
+          >Dashboard</a
+        >
+        <a class="nav-item active" href="#"
+          ><svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <path d="M14 2v6h6M8 13h8M8 17h5" /></svg
+          >Notas</a
+        >
+        <div class="nav-group">Ferramentas</div>
+        <a class="nav-item" href="#"
+          ><svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M4 6h16M4 12h16M4 18h10" /></svg
+          >Notas</a
+        >
+      </nav>
+    </aside>
+
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn" id="menuBtn" aria-label="Abrir menu">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <h1>Notas</h1>
+      </div>
+      <div class="topbar-right">
+        <button
+          class="icon-btn"
+          aria-label="Notificações"
+          data-toast="Nenhuma notificação nova"
+        >
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+          </svg>
+        </button>
+        <div class="avatar" title="Usuário" data-toast="Técnico Mock">AR</div>
+      </div>
+    </header>
+
+    <main class="page">
+      <div class="crumbs">
+        <a href="#">Notas atribuídas</a>
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#71717a"
+          stroke-width="2"
+        >
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+        <span class="cur">Detalhes da nota</span>
+      </div>
+      <p class="page-title">Detalhes da nota</p>
+
+      <div class="tabs">
+        <div class="tablist" role="tablist">
+          <button class="tab active" data-target="scroll-overview">
+            Visão Geral da Nota
+          </button>
+          <button class="tab" data-target="scroll-progress">
+            Andamento do pedido
+          </button>
+          <button class="tab" data-target="scroll-documents">
+            Análise Documental
+          </button>
+          <button class="tab" data-target="scroll-env">
+            Análise Ambiental
+          </button>
+          <button class="tab" data-target="scroll-map">Notas próximas</button>
+          <button class="tab" data-target="scroll-power">
+            Simulação de Carga
+          </button>
+        </div>
+      </div>
+      <p class="nota-num" id="notaNum">N° 001300045871</p>
+
+      <div class="section-title" id="scroll-overview">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <path d="M5 3h14v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21z" />
+          <path d="M9 8h6M9 12h6M9 16h3" />
+        </svg>
+        Visão Geral da Nota
+      </div>
+      <div class="ov-row">
+        <div class="ov-cell">
+          <div class="ov-h">Prazo padrão</div>
+          <div class="ov-v">15 dias</div>
+        </div>
+        <div class="ov-cell">
+          <div class="ov-h">Prazo real</div>
+          <div class="ov-v">1 dias</div>
+        </div>
+      </div>
+      <div style="height: 24px"></div>
+
+      <div class="card">
+        <div class="card-h">Dados do Solicitante</div>
+        <div class="grid g-sol">
+          <div class="field">
+            <label>Parceiro de Negócios</label>
+            <div class="val">0098765432</div>
+          </div>
+          <div class="field">
+            <label>Nome do Cliente</label>
+            <div class="val hl" id="solNome">MARIANA SOUZA ALMEIDA</div>
+          </div>
+          <div class="field">
+            <label>Instalação</label>
+            <div class="val">3099123456</div>
+          </div>
+          <div class="field">
+            <label>Celular do Solicitante</label>
+            <div class="val">(33) 98812-4410</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">Dados de Endereço</div>
+        <div class="row-radios"></div>
+        <div class="grid g4">
+          <div class="field">
+            <label>Estado</label>
+            <div class="val">Leste</div>
+          </div>
+          <div class="field">
+            <label>Município</label>
+            <div class="val hl" id="endMunicipio">
+              Santo Antônio do Jacinto - MG
+            </div>
+          </div>
+          <div class="field">
+            <label>Endereço</label>
+            <div class="val hl" id="endEndereco">
+              ENDERECO RURAL, 99999, AREA RURAL
+            </div>
+          </div>
+          <div class="field">
+            <label>Referência</label>
+            <div class="val">1020100004321</div>
+          </div>
+          <div class="coord" id="coordBox">
+            <div class="field coord-head">
+              <span class="lbl-sm">Coordenadas</span>
+              <div class="seg" role="tablist" id="coordMode">
+                <button type="button" class="active" data-mode="dec">
+                  Decimal
+                </button>
+                <button type="button" data-mode="dms">Grau</button>
+                <button type="button" data-mode="utm">UTM</button>
+              </div>
+            </div>
+            <div class="coord-grp" data-grp="dec">
+              <div class="field">
+                <span class="lbl-sm">Latitude</span
+                ><input id="lat" value="-16,5321047" />
+              </div>
+              <div class="field">
+                <span class="lbl-sm">Longitude</span
+                ><input id="lng" value="-40,1812390" />
+              </div>
+            </div>
+            <div class="coord-grp" data-grp="dms" hidden>
+              <div class="field">
+                <span class="lbl-sm">Latitude</span
+                ><input value="16° 31' 55,58&quot; S" />
+              </div>
+              <div class="field">
+                <span class="lbl-sm">Longitude</span
+                ><input value="40° 10' 52,46&quot; W" />
+              </div>
+            </div>
+            <div class="coord-grp" data-grp="utm" hidden>
+              <div class="field">
+                <span class="lbl-sm">Zona</span><input value="24K" />
+              </div>
+              <div class="field">
+                <span class="lbl-sm">Easting (E)</span><input value="374.172" />
+              </div>
+              <div class="field">
+                <span class="lbl-sm">Northing (N)</span
+                ><input value="8.171.290" />
+              </div>
+            </div>
+            <div class="coord-save">
+              <button
+                class="btn btn-primary btn-sm"
+                id="saveCoords"
+                disabled
+                title="Alterações nas coordenadas não serão propagadas para o SAP ERP."
+              >
+                Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">Características</div>
+        <div style="padding: 12px 16px 0"></div>
+        <div class="grid g3">
+          <div class="field">
+            <label>Localização Física</label>
+            <div class="val">Rural</div>
+          </div>
+          <div class="field">
+            <label>Grupo de Tensão</label>
+            <div class="val">BT (Baixa Tensão)</div>
+          </div>
+          <div class="field">
+            <label>Tipo de Ligação</label>
+            <div class="val">Monofásico</div>
+          </div>
+          <div class="field">
+            <label>Número de caixas</label>
+            <div class="val">2</div>
+          </div>
+          <div class="field">
+            <label>Quantidade de Disjuntores gerais</label>
+            <div class="val empty">&nbsp;</div>
+          </div>
+          <div class="field">
+            <label>Disjuntor geral</label>
+            <div class="val">-</div>
+          </div>
+        </div>
+        <div class="eq-head">
+          <p class="subtitle">Relação de carga</p>
+          <div class="seg" role="tablist" id="eqCaixa">
+            <button type="button" class="active" data-caixa="1">Caixa 1</button>
+            <button type="button" data-caixa="2">Caixa 2</button>
+          </div>
+        </div>
+        <div class="table-wrap" style="padding: 16px" data-caixa-tbl="1">
+          <table class="tbl tbl-compact">
+            <thead>
+              <tr>
+                <th>Equipamento</th>
+                <th>Descrição</th>
+                <th class="num">Fases</th>
+                <th class="num">Pot. (W)</th>
+                <th class="num">Qtd. Equip.</th>
+                <th>Local do Equipamento</th>
+                <th class="num">Carga total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>B060</td>
+                <td>AR CONDIC. 12.000 BTUS</td>
+                <td class="num">2</td>
+                <td class="num">1.450</td>
+                <td class="num">2</td>
+                <td>Residencial</td>
+                <td class="num">2.900</td>
+              </tr>
+              <tr>
+                <td>B091</td>
+                <td>AR CONDIC. 20.000 BTUS</td>
+                <td class="num">2</td>
+                <td class="num">2.800</td>
+                <td class="num">3</td>
+                <td>Residencial</td>
+                <td class="num">8.400</td>
+              </tr>
+              <tr>
+                <td>B580</td>
+                <td>MAQUINA DE LAVAR</td>
+                <td class="num">1</td>
+                <td class="num">1.000</td>
+                <td class="num">1</td>
+                <td>Residencial</td>
+                <td class="num">1.000</td>
+              </tr>
+              <tr>
+                <td>C100</td>
+                <td>MOTOR 5,0 CV MONO</td>
+                <td class="num">1</td>
+                <td class="num">4.910</td>
+                <td class="num">3</td>
+                <td>Residencial</td>
+                <td class="num">14.730</td>
+              </tr>
+              <tr>
+                <td>C110</td>
+                <td>MOTOR 7,5 CV MONO</td>
+                <td class="num">1</td>
+                <td class="num">7.460</td>
+                <td class="num">3</td>
+                <td>Residencial</td>
+                <td class="num">22.380</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="6">Total</td>
+                <td class="num">49.410</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="grid g4 eq-info" data-caixa-tbl="1">
+          <div class="field">
+            <label>Disjuntor</label>
+            <div class="val hl">MONOPOLAR 63A -</div>
+          </div>
+          <div class="field">
+            <label>Finalidade</label>
+            <div class="val hl">Conexão nova</div>
+          </div>
+          <div class="field">
+            <label>Demanda</label>
+            <div class="val hl">25,6</div>
+          </div>
+        </div>
+        <div class="table-wrap" style="padding: 16px" data-caixa-tbl="2" hidden>
+          <table class="tbl tbl-compact">
+            <thead>
+              <tr>
+                <th>Equipamento</th>
+                <th>Descrição</th>
+                <th class="num">Fases</th>
+                <th class="num">Pot. (W)</th>
+                <th class="num">Qtd. Equip.</th>
+                <th>Local do Equipamento</th>
+                <th class="num">Carga total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>B010</td>
+                <td>CHUVEIRO ELETRICO</td>
+                <td class="num">1</td>
+                <td class="num">5.500</td>
+                <td class="num">1</td>
+                <td>Residencial</td>
+                <td class="num">5.500</td>
+              </tr>
+              <tr>
+                <td>B200</td>
+                <td>GELADEIRA</td>
+                <td class="num">1</td>
+                <td class="num">350</td>
+                <td class="num">1</td>
+                <td>Residencial</td>
+                <td class="num">350</td>
+              </tr>
+              <tr>
+                <td>B300</td>
+                <td>FORNO MICROONDAS</td>
+                <td class="num">1</td>
+                <td class="num">1.200</td>
+                <td class="num">1</td>
+                <td>Residencial</td>
+                <td class="num">1.200</td>
+              </tr>
+              <tr>
+                <td>C050</td>
+                <td>BOMBA D'AGUA 1 CV MONO</td>
+                <td class="num">1</td>
+                <td class="num">740</td>
+                <td class="num">2</td>
+                <td>Residencial</td>
+                <td class="num">1.480</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="6">Total</td>
+                <td class="num">8.530</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="grid g4 eq-info" data-caixa-tbl="2" hidden>
+          <div class="field">
+            <label>Disjuntor</label>
+            <div class="val hl">BIPOLAR 50A -</div>
+          </div>
+          <div class="field">
+            <label>Finalidade</label>
+            <div class="val hl">Aumento de carga</div>
+          </div>
+          <div class="field">
+            <label>Demanda</label>
+            <div class="val hl">3,5</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="sep" />
+
+      <div class="section-title" id="scroll-progress">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <rect x="8" y="4" width="13" height="10" rx="1.5" />
+          <path
+            d="M5 8v8.5A1.5 1.5 0 0 0 6.5 18H16M2 11v8.5A1.5 1.5 0 0 0 3.5 21H13"
+          />
+          <path d="M11 8h7" />
+        </svg>
+        Andamento do pedido
+      </div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th style="width: 22%">Etapa</th>
+              <th>Medida</th>
+              <th>Data de início</th>
+              <th>Prazo Real</th>
+              <th>Status</th>
+              <th>Detalhes</th>
+            </tr>
+          </thead>
+          <tbody id="andamento">
+            <tr>
+              <td>Análise da Documentação</td>
+              <td>
+                <span class="medida-code">0019</span>
+                <div class="medida-desc">CONC RTEC</div>
+              </td>
+              <td>19/08/2026</td>
+              <td><span class="prazo">5 dias</span></td>
+              <td>
+                <span class="pill pill-erro"
+                  ><span class="dot"></span>Pedido indeferido</span
+                >
+              </td>
+              <td>
+                <button
+                  class="btn btn-outline"
+                  data-etapa
+                  data-obs="Documentação conferida pelo responsável técnico. Medida CONC RTEC registrada no sistema."
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"
+                    />
+                    <circle cx="12" cy="12" r="3" /></svg
+                  >Ver detalhes
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <hr class="sep" />
+
+      <div class="section-title" id="scroll-documents">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+          <path d="M8 21h8M12 17v4" />
+          <circle cx="11" cy="10" r="3" />
+          <path d="m13.2 12.2 2.3 2.3" />
+        </svg>
+        Análise Documental
+      </div>
+      <div class="alert">
+        <div class="alert-ic">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#fff"
+            stroke-width="2"
+          >
+            <path
+              d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"
+            />
+            <path d="M12 9v4M12 17h.01" />
+          </svg>
+        </div>
+        <div class="alert-body">
+          <b>Sem análise</b>
+          <ul>
+            <li>Nenhuma análise documental foi executada para esta nota.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-h">Documentos Enviados</div>
+          <div class="stat-b">
+            <div>
+              <div class="num">4</div>
+              <div class="sub">4/0 obrigatórios</div>
+            </div>
+            <div class="stat-ic" style="background: #e8f4ee">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#127a4c"
+                stroke-width="1.8"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <path d="M14 2v6h6M9 15l2 2 4-4" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="stat err">
+          <div class="stat-h">Alertas de Fraude</div>
+          <div class="stat-b">
+            <div>
+              <div class="num">0</div>
+              <div class="sub">Suspeita de Fraude</div>
+            </div>
+            <div class="stat-ic" style="background: #fdeaea">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#d32f3a"
+                stroke-width="1.8"
+              >
+                <path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" />
+                <path d="M12 8v4M12 16h.01" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="stat warn">
+          <div class="stat-h">Pendentes/Revisão</div>
+          <div class="stat-b">
+            <div>
+              <div class="num">0</div>
+              <div class="sub">Requer revisão manual</div>
+            </div>
+            <div class="stat-ic" style="background: #fdf6d8">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#b89600"
+                stroke-width="1.8"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="stat">
+          <div class="stat-h">Reprovas do Sistema</div>
+          <div class="stat-b">
+            <div>
+              <div class="num">0</div>
+              <div class="sub">Documento não anexado</div>
+            </div>
+            <div class="stat-ic" style="background: #f1f1f1">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#6b6b6b"
+                stroke-width="1.8"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <path d="M14 2v6h6M9.5 12.5l5 5M14.5 12.5l-5 5" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="doc-head">
+          <div class="c1">Documentos</div>
+          <div class="c2">Resultado</div>
+          <div class="c3">Ações</div>
+        </div>
+        <div id="docRows">
+          <div
+            class="doc-row"
+            title="Ver documento"
+            data-src="ALVARA_CONSTRUCAO_1123758297_0.pdf"
+          >
+            <div class="c1">
+              <span class="t">Alvará de construção</span
+              ><span class="f">ALVARA_CONSTRUCAO_1123758297_0.pdf</span>
+            </div>
+            <div class="c2">
+              <span class="pill pill-alerta"
+                ><span class="dot"></span>Indefinido</span
+              >
+            </div>
+            <div class="c3">
+              <button class="eye-btn" aria-label="Visualizar">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="doc-row" title="Ver documento" data-src="IPTU_001.PDF">
+            <div class="c1">
+              <span class="t">IPTU</span><span class="f">IPTU_001.PDF</span>
+            </div>
+            <div class="c2">
+              <span class="pill pill-alerta"
+                ><span class="dot"></span>Indefinido</span
+              >
+            </div>
+            <div class="c3">
+              <button class="eye-btn" aria-label="Visualizar">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div
+            class="doc-row"
+            title="Ver documento"
+            data-src="LICENCA_AMBIENTAL_001.pdf"
+          >
+            <div class="c1">
+              <span class="t">Licença ambiental</span
+              ><span class="f">LICENCA_AMBIENTAL_001.pdf</span>
+            </div>
+            <div class="c2">
+              <span class="pill pill-alerta"
+                ><span class="dot"></span>Indefinido</span
+              >
+            </div>
+            <div class="c3">
+              <button class="eye-btn" aria-label="Visualizar">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div
+            class="doc-row"
+            title="Ver documento"
+            data-src="PROCURACAO_001 (2).pdf"
+          >
+            <div class="c1">
+              <span class="t">Procuração</span
+              ><span class="f">PROCURACAO_001 (2).pdf</span>
+            </div>
+            <div class="c2">
+              <span class="pill pill-alerta"
+                ><span class="dot"></span>Indefinido</span
+              >
+            </div>
+            <div class="c3">
+              <button class="eye-btn" aria-label="Visualizar">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="actions-end">
+        <button class="btn btn-primary" data-toast="Análise documental fechada">
+          Fechar análise
+        </button>
+      </div>
+
+      <hr class="sep" />
+
+      <div class="two-col">
+        <div>
+          <div class="section-title" id="scroll-env">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <path
+                d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10Z"
+              />
+              <path d="M2 21c0-3 1.9-5.4 5.2-6.1 2.4-.5 4.8-2 5.8-3.9" />
+            </svg>
+            Análise ambiental
+          </div>
+          <div class="map-box">
+            <div class="map-fallback">Carregando mapa…</div>
+            <div id="mapEnv" style="position: absolute; inset: 0"></div>
+          </div>
+          <div class="success-box">
+            <div class="ic">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#fff"
+                stroke-width="3"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            </div>
+            <div>
+              <b>Nenhuma restrição ambiental encontrada</b>
+              <small
+                >O local não está em área de preservação ambiental ou unidade de
+                conservação.</small
+              >
+            </div>
+          </div>
+          <div class="actions-end">
+            <button
+              class="btn btn-primary"
+              data-toast="Análise ambiental fechada"
+            >
+              Fechar análise
+            </button>
+          </div>
+        </div>
+        <div>
+          <div class="section-title" id="scroll-map">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <path d="m9 4-6 2v14l6-2 6 2 6-2V4l-6 2z" />
+              <path d="M9 4v14M15 6v14" />
+            </svg>
+            Notas próximas da região
+          </div>
+          <div class="map-box">
+            <div class="map-fallback">Carregando mapa…</div>
+            <div id="mapNear" style="position: absolute; inset: 0"></div>
+            <div class="opacity-ctl">
+              <p>Opacidade do Mapa</p>
+              <input type="range" min="0" max="100" value="30" id="opacity" />
+            </div>
+          </div>
+          <div class="legend">
+            <span
+              ><i class="pin" style="background: #127a4c"></i>Nota atual</span
+            >
+            <span
+              ><i class="pin" style="background: #8b5cf6"></i>Notas de outros
+              técnicos</span
+            >
+            <span
+              ><i class="pin" style="background: #8a8a8a"></i>Notas
+              concluídas</span
+            >
+            <span
+              ><i class="pin" style="background: #ffd500"></i>Notas em
+              estoque</span
+            >
+          </div>
+          <div id="nearList">
+            <div
+              class="near-row"
+              data-lat="-16.5321"
+              data-lng="-40.1812"
+              data-cor="#127a4c"
+              data-tipo="Nota atual"
+            >
+              <i class="pin" style="background: #127a4c"></i>
+              <span class="near-num">Nº 001300045871</span>
+              <span class="near-addr">ENDERECO RURAL</span>
+              <span class="chip">1 - BT - Baixa Tensão</span>
+              <span class="near-tec">-</span>
+            </div>
+            <div
+              class="near-row"
+              data-lat="-16.5296"
+              data-lng="-40.1779"
+              data-cor="#ffd500"
+              data-tipo="Notas em estoque"
+            >
+              <i class="pin" style="background: #ffd500"></i>
+              <span class="near-num">Nº 001300051230</span>
+              <span class="near-addr">ENDERECO RURAL</span>
+              <span class="chip">1 - BT - Baixa Tensão</span>
+              <span class="near-tec">-</span>
+            </div>
+            <div
+              class="near-row"
+              data-lat="-16.5352"
+              data-lng="-40.1861"
+              data-cor="#8b5cf6"
+              data-tipo="Notas de outros técnicos"
+            >
+              <i class="pin" style="background: #8b5cf6"></i>
+              <span class="near-num">Nº 001299987410</span>
+              <span class="near-addr">CORREGO FUNDO, S/N</span>
+              <span class="chip">1 - BT - Baixa Tensão</span>
+              <span class="near-tec">J. Pereira</span>
+            </div>
+            <div
+              class="near-row"
+              data-lat="-16.5274"
+              data-lng="-40.1868"
+              data-cor="#8a8a8a"
+              data-tipo="Notas concluídas"
+            >
+              <i class="pin" style="background: #8a8a8a"></i>
+              <span class="near-num">Nº 001299876002</span>
+              <span class="near-addr">RUA DAS FLORES, 120</span>
+              <span class="chip">2 - MT - Média Tensão</span>
+              <span class="near-tec">AR</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="sep" />
+
+      <div class="section-title" id="scroll-power">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <path d="M13 2 4 14h7l-1 8 9-12h-7z" />
+        </svg>
+        Simulação de carga
+      </div>
+      <div class="alert" style="margin-top: 16px">
+        <div class="alert-ic">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#fff"
+            stroke-width="2"
+          >
+            <path
+              d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"
+            />
+            <path d="M12 9v4M12 17h.01" />
+          </svg>
+        </div>
+        <div class="alert-body">
+          <b>Resultado da Simulação: Conexão liberada com obras</b>
+          <b>Motivos do resultado :</b>
+          <ul>
+            <li>Extensão de rede</li>
+          </ul>
+          <b>Detalhes :</b>
+          <ul>
+            <li>
+              Nenhum poste encontrado num raio de 30 m — é necessária extensão
+              de rede. Ponto de rede mais próximo (ramal de ligação): 1520 m.
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div style="margin-top: 16px">
+        <div class="sim-row">
+          <div class="sim-card">
+            <div class="h">Carregamento</div>
+            <div class="b">
+              <div>
+                <div class="big">- %</div>
+                <div class="sub">- KVA</div>
+              </div>
+              <svg
+                width="52"
+                height="52"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#127a4c"
+                stroke-width="1.4"
+              >
+                <path d="M3 3v18h18" />
+                <path d="m7 15 4-4 3 3 5-6" />
+              </svg>
+            </div>
+          </div>
+          <div class="sim-card">
+            <div class="h">Queda de Tensão</div>
+            <div class="b">
+              <div>
+                <div class="big">- %</div>
+                <div class="sub">Dentro do limite</div>
+              </div>
+              <svg
+                width="52"
+                height="52"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#127a4c"
+                stroke-width="1.4"
+              >
+                <path d="M12 3v14M6 11l6 6 6-6" />
+                <path d="M4 21h16" />
+              </svg>
+            </div>
+          </div>
+          <div class="sim-card">
+            <div class="h">Sobretensão</div>
+            <div class="b">
+              <div>
+                <div class="big">- %</div>
+                <div class="sub">Dentro do limite</div>
+              </div>
+              <svg
+                width="52"
+                height="52"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#127a4c"
+                stroke-width="1.4"
+              >
+                <path d="M12 21V7M6 13l6-6 6 6" />
+                <path d="M4 3h16" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="sim-row">
+          <div class="sim-card">
+            <div class="h">Transformador</div>
+            <div class="b">
+              <div><div class="big">-</div></div>
+            </div>
+          </div>
+          <div class="sim-card">
+            <div class="h">Demanda Simulada</div>
+            <div class="b">
+              <div><div class="big">- kVA</div></div>
+            </div>
+          </div>
+          <div class="sim-card">
+            <div class="h">Hora de pico</div>
+            <div class="b">
+              <div><div class="big">- h</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="actions-end">
+        <button class="btn btn-primary" data-toast="Simulação de carga fechada">
+          Fechar análise
+        </button>
+      </div>
+    </main>
+
+    <dialog id="dlg">
+      <div class="dlg-h">
+        <span id="dlgTitle"></span
+        ><button class="icon-btn" data-close aria-label="Fechar">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="dlg-b" id="dlgBody"></div>
+      <div class="dlg-f">
+        <button class="btn btn-primary" data-close>Fechar</button>
+      </div>
+    </dialog>
+
+    <dialog id="docDlg" aria-labelledby="docDlgTitle">
+      <div class="dlg-h">
+        <div class="doc-dlg-t">
+          <span id="docDlgTitle"></span><small id="docDlgFile"></small>
+        </div>
+        <button
+          class="icon-btn doc-dlg-pop"
+          id="docDlgPop"
+          title="Abrir em nova janela (pode ser arrastada para outra tela)"
+          aria-label="Abrir em nova janela"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M14 3h7v7" /><path d="M21 3 11 13" />
+            <path d="M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5" />
+          </svg>
+        </button>
+        <button class="icon-btn" data-close aria-label="Fechar">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="doc-dlg-b" id="docDlgBody"></div>
+    </dialog>
+
+    <div class="toast" id="toast"></div>
+    <span class="version">v1.5</span>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+      (function () {
+        const $ = (id) => document.getElementById(id);
+        const esc = (s) =>
+          String(s ?? "").replace(
+            /[&<>"]/g,
+            (c) =>
+              ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+          );
+        const txt = (el) => el.textContent.trim();
+        const notaNumero = txt($("notaNum")).replace("N° ", "");
+
+        const coordInputs = [...$("coordBox").querySelectorAll("input")];
+        const saved = new Map(coordInputs.map((i) => [i, i.value]));
+        const coordsChanged = () => {
+          $("saveCoords").disabled = coordInputs.every(
+            (i) => i.value === saved.get(i),
+          );
+        };
+        coordInputs.forEach((i) => i.addEventListener("input", coordsChanged));
+        $("saveCoords").addEventListener("click", () => {
+          coordInputs.forEach((i) => saved.set(i, i.value));
+          coordsChanged();
+          toast("Coordenadas salvas (mock)");
+        });
+        $("coordMode").addEventListener("click", (ev) => {
+          const b = ev.target.closest("[data-mode]");
+          if (!b) return;
+          $("coordMode")
+            .querySelectorAll("button")
+            .forEach((x) => x.classList.toggle("active", x === b));
+          $("coordBox")
+            .querySelectorAll(".coord-grp")
+            .forEach((g) => (g.hidden = g.dataset.grp !== b.dataset.mode));
+        });
+        $("eqCaixa").addEventListener("click", (ev) => {
+          const b = ev.target.closest("[data-caixa]");
+          if (!b) return;
+          $("eqCaixa")
+            .querySelectorAll("button")
+            .forEach((x) => x.classList.toggle("active", x === b));
+          document
+            .querySelectorAll("[data-caixa-tbl]")
+            .forEach(
+              (t) => (t.hidden = t.dataset.caixaTbl !== b.dataset.caixa),
+            );
+        });
+
+        $("andamento").addEventListener("click", (ev) => {
+          const b = ev.target.closest("[data-etapa]");
+          if (!b) return;
+          const cells = b.closest("tr").cells;
+          const code = cells[1].querySelector(".medida-code");
+          const medida = code
+            ? txt(code) + " — " + txt(cells[1].querySelector(".medida-desc"))
+            : "-";
+          openDialog(
+            txt(cells[0]),
+            `
+        <div><label>Etapa</label><span>${esc(txt(cells[0]))}</span></div>
+        <div><label>Status</label>${cells[4].innerHTML}</div>
+        <div><label>Medida</label><span>${esc(medida)}</span></div>
+        <div><label>Data de início</label><span>${esc(txt(cells[2]))}</span></div>
+        <div><label>Prazo real</label><span>${esc(txt(cells[3]))}</span></div>
+        <div><label>Nota</label><span>${esc(notaNumero)}</span></div>
+        <div class="full"><label>Observação</label><span>${esc(b.dataset.obs || "Sem observações registradas para esta etapa.")}</span></div>`,
+          );
+        });
+
+        const nearItems = [...document.querySelectorAll("#nearList .near-row")];
+
+        $("docRows").addEventListener("click", (ev) => {
+          const r = ev.target.closest(".doc-row");
+          if (!r) return;
+          // abre o documento no popup (o visualizador de cada documento só é criado na 1ª abertura)
+          const src = r.dataset.src;
+          const win = docWins.get(src);
+          if (win && !win.closed) return win.focus();
+          let view = docViews.get(src);
+          const isNew = !view;
+          if (isNew) {
+            view = document.createElement("div");
+            view.className = "doc-view";
+            view.innerHTML = DOC_VIEW_HTML;
+            docViews.set(src, view);
+          }
+          docOpen = { src, title: txt(r.querySelector(".t")), view };
+          $("docDlgTitle").textContent = docOpen.title;
+          $("docDlgFile").textContent = src;
+          $("docDlgBody").replaceChildren(view);
+          $("docDlg").showModal();
+          if (isNew) initDocView(view, src);
+          else view.dispatchEvent(new Event("dv-resize"));
+        });
+        const docViews = new Map();
+        const docWins = new Map();
+        let docOpen;
+        $("docDlg").addEventListener("click", (ev) => {
+          if (ev.target.closest("[data-close]") || ev.target === $("docDlg"))
+            $("docDlg").close();
+        });
+        // passa o documento do popup para uma janela do navegador, que pode ser
+        // arrastada para outra tela; ao fechá-la, ele volta a abrir no popup
+        $("docDlgPop").addEventListener("click", () => {
+          const { src, title, view } = docOpen;
+          const w = window.open(
+            "",
+            "doc-" + src.replace(/\W/g, "_"),
+            "popup,width=1280,height=860",
+          );
+          if (!w) return toast("O navegador bloqueou a nova janela");
+          $("docDlg").close();
+          const d = w.document;
+          d.title = title + " — " + src;
+          d.head.innerHTML =
+            '<meta charset="utf-8" />' +
+            [...document.querySelectorAll("style, link[rel=stylesheet]")]
+              .map((n) => n.outerHTML)
+              .join("");
+          d.body.className = "doc-win";
+          d.body.innerHTML = `<div class="dlg-h"><div class="doc-dlg-t">
+              <span>${esc(title)}</span><small>${esc(src)}</small></div></div>
+            <div class="doc-dlg-b"></div>`;
+          d.querySelector(".doc-dlg-b").append(d.adoptNode(view));
+          docWins.set(src, w);
+          let t;
+          const fit = () => view.dispatchEvent(new Event("dv-resize"));
+          w.addEventListener("resize", () => {
+            clearTimeout(t);
+            t = setTimeout(fit, 150);
+          });
+          w.addEventListener("pagehide", () => {
+            docWins.delete(src);
+            document.adoptNode(view);
+          });
+          fit();
+          w.focus();
+        });
+        addEventListener("pagehide", () => docWins.forEach((w) => w.close()));
+
+        /* ---------- visualizador de documentos (PDF.js) ---------- */
+        const PDFJS_CDN =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+        const DOC_VIEW_HTML = `
+          <aside class="dv-card dv-side">
+            <div class="dv-bar"><b>Dados a conferir</b></div>
+            <div class="dv-cmp">Lendo documento…</div>
+          </aside>
+          <div class="dv-card dv-doc">
+            <div class="dv-bar">
+              <b>Visualizador Expandido do Documento</b>
+              <button type="button" class="dv-rot">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 12a9 9 0 1 1-2.6-6.4" /><path d="M21 3v6h-6" />
+                </svg>
+                Girar
+              </button>
+            </div>
+            <div class="dv-pager">
+              <button type="button" data-go="first" aria-label="Primeira página">«</button>
+              <button type="button" data-go="prev" aria-label="Página anterior">‹</button>
+              <span class="dv-num">1</span>
+              <button type="button" data-go="next" aria-label="Próxima página">›</button>
+              <button type="button" data-go="last" aria-label="Última página">»</button>
+            </div>
+            <div class="dv-stage"><div class="dv-page"></div></div>
+          </div>`;
+        const loadScript = (src) =>
+          new Promise((ok, fail) => {
+            const s = document.createElement("script");
+            s.src = src;
+            s.onload = ok;
+            s.onerror = fail;
+            document.head.appendChild(s);
+          });
+        let pdfLib;
+        // docs-data.js (gerado por gerar-docs-data.js) traz os PDFs em base64, o que
+        // permite abri-los mesmo com a página aberta direto do disco (file://)
+        const loadPdfLib = () =>
+          (pdfLib ||= Promise.all([
+            loadScript(PDFJS_CDN + "pdf.min.js"),
+            loadScript("docs-data.js").catch(() => {}),
+          ]).then(() => {
+            pdfjsLib.GlobalWorkerOptions.workerSrc =
+              PDFJS_CDN + "pdf.worker.min.js";
+          }));
+
+        const plain = (s) =>
+          String(s)
+            .normalize("NFD")
+            .replace(/[̀-ͯ]/g, "");
+        const norm = (s) => plain(s).toUpperCase().replace(/\s+/g, " ").trim();
+        const tokens = (s) =>
+          norm(s)
+            .split(/[^A-Z0-9]+/)
+            .filter((t) => t.length > 2);
+        const similar = (a, b) => {
+          const A = norm(a),
+            B = norm(b);
+          if (!A || !B) return false;
+          if (A.includes(B) || B.includes(A)) return true;
+          const ta = tokens(a),
+            tb = new Set(tokens(b));
+          return (
+            ta.length > 0 &&
+            ta.filter((t) => tb.has(t)).length / ta.length >= 0.6
+          );
+        };
+        // campos conferidos: valor na nota, rótulos procurados no documento (texto já
+        // sem acentos) e validação mínima do valor encontrado
+        const DOC_FIELDS = [
+          {
+            label: "Solicitante",
+            nota: () => txt($("solNome")),
+            re: /^(?:nome(?: d[oa] (?:cliente|requerente|proprietario|titular|contribuinte))?|proprietario|outorgante|titular|contribuinte|interessado)(?![a-z0-9])\s*:?\s*(.*)$/i,
+            ok: (v) => !/\d/.test(v) && v.split(/\s+/).length >= 2,
+          },
+          {
+            label: "Município",
+            nota: () => txt($("endMunicipio")).replace(/\s*-\s*[A-Z]{2}$/, ""),
+            re: /^municipio(?: de)?(?![a-z0-9])\s*:?\s*(.*)$/i,
+            ok: (v) => !/\d/.test(v),
+          },
+          {
+            label: "Endereço",
+            nota: () => txt($("endEndereco")),
+            re: /^(?:endereco(?: d[oae] [a-z]+)?|logradouro)(?![a-z0-9])\s*:?\s*(.*)$/i,
+            ok: (v) => /\d/.test(v),
+          },
+        ];
+        // agrupa os itens de texto do PDF em linhas e, dentro delas, em trechos contíguos
+        function buildRuns(items, page) {
+          const its = items
+            .filter((i) => i.str && i.str.trim())
+            .map((i) => ({
+              str: i.str.trim().normalize("NFC"),
+              x: i.transform[4],
+              y: i.transform[5],
+              w: i.width,
+              h: i.height || Math.abs(i.transform[3]),
+            }))
+            .sort((a, b) => b.y - a.y || a.x - b.x);
+          const lines = [];
+          its.forEach((it) => {
+            const ln = lines[lines.length - 1];
+            if (ln && Math.abs(ln.y - it.y) <= 3) ln.items.push(it);
+            else lines.push({ y: it.y, items: [it] });
+          });
+          const runs = [];
+          lines.forEach((ln) => {
+            let run = null;
+            ln.items
+              .sort((a, b) => a.x - b.x)
+              .forEach((it) => {
+                const last = run && run.items[run.items.length - 1];
+                if (last && it.x - (last.x + last.w) <= 14) run.items.push(it);
+                else runs.push((run = { page, x: it.x, y: ln.y, items: [it] }));
+              });
+          });
+          runs.forEach((r) => (r.text = r.items.map((i) => i.str).join(" ")));
+          return runs;
+        }
+        // valor = últimos `len` caracteres do trecho, com seus retângulos em coordenadas do PDF
+        function runHit(run, len = run.text.length) {
+          let pos = 0;
+          const cut = run.text.length - len,
+            rects = [];
+          run.items.forEach((it) => {
+            const start = pos,
+              end = pos + it.str.length;
+            pos = end + 1;
+            if (end <= cut) return;
+            const f = Math.max(0, cut - start) / it.str.length;
+            rects.push({
+              x: it.x + it.w * f,
+              y: it.y,
+              w: it.w * (1 - f),
+              h: it.h,
+            });
+          });
+          // os itens são da mesma linha: une tudo em um só retângulo
+          const x = Math.min(...rects.map((q) => q.x));
+          const box = {
+            x,
+            y: run.y,
+            w: Math.max(...rects.map((q) => q.x + q.w)) - x,
+            h: Math.max(...rects.map((q) => q.h)),
+          };
+          return { value: run.text.slice(cut), page: run.page, rects: [box] };
+        }
+        function findByLabel(runs, { re, ok }) {
+          for (let i = 0; i < runs.length; i++) {
+            const r = runs[i];
+            const m = plain(r.text).match(re);
+            if (!m) continue;
+            // valor na mesma linha do rótulo ou, se o rótulo está sozinho, logo abaixo dele
+            const below =
+              !m[1] &&
+              runs
+                .slice(i + 1)
+                .find(
+                  (o) =>
+                    o.page === r.page &&
+                    o.y < r.y - 3 &&
+                    o.y > r.y - 30 &&
+                    Math.abs(o.x - r.x) < 20,
+                );
+            const h = m[1] ? runHit(r, m[1].length) : below && runHit(below);
+            if (h && ok(h.value)) return h;
+          }
+          return null;
+        }
+        // compara cada campo da nota com o documento: primeiro procura o valor da nota
+        // em qualquer lugar do texto; se não achar, usa o valor ao lado do rótulo
+        function compareDoc(runs) {
+          return DOC_FIELDS.map((f) => {
+            const nota = f.nota();
+            const same = runs.find((r) => norm(r.text).includes(norm(nota)));
+            const h = same ? runHit(same) : findByLabel(runs, f);
+            const st = !h ? "na" : same || similar(nota, h.value) ? "ok" : "bad";
+            return { label: f.label, nota, st, hit: h };
+          });
+        }
+        const ST_LABEL = { ok: "Confere", bad: "Divergente", na: "Não localizado" };
+
+        async function initDocView(view, src) {
+          const st = { page: 1, rot: 0, token: 0, hits: [] };
+          const cmp = view.querySelector(".dv-cmp");
+          try {
+            await loadPdfLib();
+            const b64 = window.DOC_DATA && window.DOC_DATA[src];
+            st.pdf = await pdfjsLib.getDocument(
+              b64
+                ? { data: Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)) }
+                : { url: encodeURI(src) },
+            ).promise;
+          } catch (err) {
+            // sem PDF.js (offline, ou PDF fora do docs-data.js em file://): visualizador do navegador
+            cmp.textContent =
+              "Não foi possível ler o texto deste documento para a conferência automática.";
+            const frame = document.createElement("iframe");
+            frame.src = encodeURI(src);
+            view.querySelector(".dv-pager").remove();
+            view.querySelector(".dv-rot").remove();
+            view.querySelector(".dv-stage").replaceChildren(frame);
+            return;
+          }
+          const go = (n) => {
+            st.page = Math.min(st.pdf.numPages, Math.max(1, n));
+            renderDocPage(view, st);
+          };
+          view.querySelector(".dv-pager").addEventListener("click", (ev) => {
+            const b = ev.target.closest("button");
+            if (!b) return;
+            go(
+              {
+                first: 1,
+                prev: st.page - 1,
+                next: st.page + 1,
+                last: st.pdf.numPages,
+              }[b.dataset.go],
+            );
+          });
+          view.querySelector(".dv-rot").addEventListener("click", () => {
+            st.rot = (st.rot + 90) % 360;
+            renderDocPage(view, st);
+          });
+          // a área do documento mudou de tamanho (outra janela, janela redimensionada)
+          view.addEventListener("dv-resize", () => renderDocPage(view, st));
+          cmp.addEventListener("click", (ev) => {
+            const f = ev.target.closest("[data-page]");
+            if (f) go(+f.dataset.page);
+          });
+          renderDocPage(view, st);
+
+          let runs = [];
+          for (let n = 1; n <= st.pdf.numPages; n++) {
+            const page = await st.pdf.getPage(n);
+            runs = runs.concat(buildRuns((await page.getTextContent()).items, n));
+          }
+          if (!runs.length) {
+            cmp.textContent =
+              "Documento digitalizado (imagem), sem texto pesquisável: não é possível fazer a conferência automática. Confira visualmente.";
+            return;
+          }
+          const rows = compareDoc(runs);
+          st.hits = rows.filter((r) => r.hit);
+          cmp.innerHTML = rows
+            .map(
+              (r) => `<div class="dv-field" ${r.hit ? `data-page="${r.hit.page}" title="Ir para o trecho no documento"` : ""}>
+                <div class="dv-fh"><b>${esc(r.label)}</b><span class="dv-st dv-${r.st}">${ST_LABEL[r.st]}</span></div>
+                <label>Dados da nota</label><span>${esc(r.nota)}</span>
+                <label>No documento${r.hit && st.pdf.numPages > 1 ? ` (pág. ${r.hit.page})` : ""}</label>
+                <span>${r.hit ? `<mark class="dv-${r.st}">${esc(r.hit.value)}</mark>` : "—"}</span>
+              </div>`,
+            )
+            .join("");
+          renderDocPage(view, st);
+        }
+
+        async function renderDocPage(view, st) {
+          const token = ++st.token;
+          const total = st.pdf.numPages;
+          view.querySelector(".dv-num").textContent =
+            total > 1 ? `${st.page} / ${total}` : "1";
+          view.querySelectorAll(".dv-pager button").forEach((b) => {
+            const back = b.dataset.go === "first" || b.dataset.go === "prev";
+            b.disabled = back ? st.page === 1 : st.page === total;
+          });
+          const page = await st.pdf.getPage(st.page);
+          const rotation = (page.rotate + st.rot) % 360;
+          const stage = view.querySelector(".dv-stage");
+          const width = Math.min(800, (stage.clientWidth || 832) - 32);
+          const vp = page.getViewport({
+            scale: width / page.getViewport({ scale: 1, rotation }).width,
+            rotation,
+          });
+          // a janela onde o documento está (pode estar em outra tela, com outra densidade)
+          const dpr = view.ownerDocument.defaultView.devicePixelRatio || 1;
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.floor(vp.width * dpr);
+          canvas.height = Math.floor(vp.height * dpr);
+          await page.render({
+            canvasContext: canvas.getContext("2d"),
+            viewport: vp,
+            transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null,
+          }).promise;
+          if (token !== st.token) return;
+          const sheet = view.querySelector(".dv-page");
+          sheet.style.width = vp.width + "px";
+          sheet.style.height = vp.height + "px";
+          sheet.replaceChildren(canvas);
+          // destaques dos campos encontrados nesta página
+          st.hits
+            .filter((r) => r.hit.page === st.page)
+            .forEach((r) =>
+              r.hit.rects.forEach((q) => {
+                const [x1, y1, x2, y2] = vp.convertToViewportRectangle([
+                  q.x,
+                  q.y - q.h * 0.25,
+                  q.x + q.w,
+                  q.y + q.h * 0.9,
+                ]);
+                const hl = document.createElement("div");
+                hl.className = "dv-hl dv-" + r.st;
+                hl.title = `${r.label}: ${ST_LABEL[r.st]}`;
+                hl.style.left = Math.min(x1, x2) - 2 + "px";
+                hl.style.top = Math.min(y1, y2) + "px";
+                hl.style.width = Math.abs(x2 - x1) + 4 + "px";
+                hl.style.height = Math.abs(y2 - y1) + "px";
+                sheet.appendChild(hl);
+              }),
+            );
+        }
+
+        const toNum = (v) => parseFloat(String(v).replace(",", "."));
+        if (window.L) {
+          const center = [toNum($("lat").value), toNum($("lng").value)];
+          // zoom mais suave na roda do mouse: ~meio nível por "clique" da roda
+          const wheelOpts = { zoomSnap: 0.5, wheelPxPerZoomLevel: 200 };
+          const near = L.map("mapNear", {
+            zoomControl: true,
+            attributionControl: true,
+            ...wheelOpts,
+          }).setView(center, 15);
+          const osm = L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            { maxZoom: 19, attribution: "© OpenStreetMap" },
+          ).addTo(near);
+          const setOpacity = (v) => osm.setOpacity(1 - v / 100);
+          setOpacity($("opacity").value);
+          $("opacity").addEventListener("input", (ev) =>
+            setOpacity(ev.target.value),
+          );
+          nearItems.forEach((p, i) => {
+            const d = p.dataset;
+            L.circleMarker([+d.lat, +d.lng], {
+              radius: i === 0 ? 10 : 8,
+              color: "#fff",
+              weight: 2,
+              fillColor: d.cor,
+              fillOpacity: 1,
+            })
+              .addTo(near)
+              .bindPopup(
+                `<b>${esc(txt(p.querySelector(".near-num")))}</b><br>${esc(txt(p.querySelector(".near-addr")))}<br>${esc(d.tipo)}`,
+              );
+          });
+          const env = L.map("mapEnv", wheelOpts).setView(center, 16);
+          L.tileLayer(
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            { maxZoom: 19, attribution: "Imagens © Esri" },
+          ).addTo(env);
+          L.circleMarker(center, {
+            radius: 10,
+            color: "#fff",
+            weight: 2,
+            fillColor: "#127a4c",
+            fillOpacity: 1,
+          }).addTo(env);
+          L.circle(center, {
+            radius: 120,
+            color: "#22c55e",
+            weight: 1.5,
+            fillOpacity: 0.12,
+          }).addTo(env);
+          // zoom pela roda do mouse só com Ctrl; sem Ctrl a página rola normalmente
+          [near, env].forEach((m) =>
+            m.getContainer().addEventListener(
+              "wheel",
+              (ev) => {
+                if (!ev.ctrlKey) ev.stopPropagation();
+              },
+              { capture: true },
+            ),
+          );
+          document
+            .querySelectorAll(".map-fallback")
+            .forEach((el) => el.remove());
+        } else {
+          document
+            .querySelectorAll(".map-fallback")
+            .forEach(
+              (el) =>
+                (el.textContent =
+                  "Mapa indisponível (sem conexão com a internet)"),
+            );
+        }
+
+        const tabs = [...document.querySelectorAll(".tab")];
+        const tabsBar = document.querySelector(".tabs");
+        let lockUntil = 0;
+        const setActive = (id) =>
+          tabs.forEach((t) =>
+            t.classList.toggle("active", t.dataset.target === id),
+          );
+        tabs.forEach((t) =>
+          t.addEventListener("click", () => {
+            const el = $(t.dataset.target);
+            const y =
+              el.getBoundingClientRect().top +
+              scrollY -
+              tabsBar.offsetHeight -
+              8;
+            lockUntil = Date.now() + 800;
+            setActive(t.dataset.target);
+            scrollTo({ top: y, behavior: "smooth" });
+          }),
+        );
+        const sections = tabs.map((t) => $(t.dataset.target));
+        addEventListener(
+          "scroll",
+          () => {
+            if (Date.now() < lockUntil) return;
+            const line = tabsBar.offsetHeight + 40;
+            let cur = sections[0].id;
+            for (const s of sections)
+              if (s.getBoundingClientRect().top <= line) cur = s.id;
+            if (innerHeight + scrollY >= document.body.scrollHeight - 4)
+              cur = sections.at(-1).id;
+            setActive(cur);
+          },
+          { passive: true },
+        );
+
+        const toggleDrawer = (open) => {
+          $("drawer").classList.toggle("open", open);
+          $("overlay").classList.toggle("open", open);
+        };
+        $("menuBtn").addEventListener("click", () => toggleDrawer(true));
+        $("overlay").addEventListener("click", () => toggleDrawer(false));
+        addEventListener("keydown", (ev) => {
+          if (ev.key === "Escape") toggleDrawer(false);
+        });
+
+        function openDialog(title, body) {
+          $("dlgTitle").textContent = title;
+          $("dlgBody").innerHTML = body;
+          $("dlg").showModal();
+        }
+        $("dlg").addEventListener("click", (ev) => {
+          if (ev.target.closest("[data-close]") || ev.target === $("dlg"))
+            $("dlg").close();
+        });
+
+        let tt;
+        function toast(msg) {
+          const t = $("toast");
+          t.textContent = msg;
+          t.classList.add("show");
+          clearTimeout(tt);
+          tt = setTimeout(() => t.classList.remove("show"), 2200);
+        }
+        document
+          .querySelectorAll("[data-toast]")
+          .forEach((b) =>
+            b.addEventListener("click", () => toast(b.dataset.toast)),
+          );
+      })();
+    </script>
+  </body>
+</html>
