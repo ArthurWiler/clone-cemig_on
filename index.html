@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Detalhes da nota — CEMIG ON (clone mock)</title>
+    <title>Detalhes da nota — CEMIG ON</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap"
@@ -2470,8 +2470,11 @@
             stroke="currentColor"
             stroke-width="2"
           >
-            <path d="M14 3h7v7" /><path d="M21 3 11 13" />
-            <path d="M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5" />
+            <path d="M14 3h7v7" />
+            <path d="M21 3 11 13" />
+            <path
+              d="M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"
+            />
           </svg>
         </button>
         <button class="icon-btn" data-close aria-label="Fechar">
@@ -2681,10 +2684,7 @@
               PDFJS_CDN + "pdf.worker.min.js";
           }));
 
-        const plain = (s) =>
-          String(s)
-            .normalize("NFD")
-            .replace(/[̀-ͯ]/g, "");
+        const plain = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "");
         const norm = (s) => plain(s).toUpperCase().replace(/\s+/g, " ").trim();
         const tokens = (s) =>
           norm(s)
@@ -2813,11 +2813,19 @@
             const nota = f.nota();
             const same = runs.find((r) => norm(r.text).includes(norm(nota)));
             const h = same ? runHit(same) : findByLabel(runs, f);
-            const st = !h ? "na" : same || similar(nota, h.value) ? "ok" : "bad";
+            const st = !h
+              ? "na"
+              : same || similar(nota, h.value)
+                ? "ok"
+                : "bad";
             return { label: f.label, nota, st, hit: h };
           });
         }
-        const ST_LABEL = { ok: "Confere", bad: "Divergente", na: "Não localizado" };
+        const ST_LABEL = {
+          ok: "Confere",
+          bad: "Divergente",
+          na: "Não localizado",
+        };
 
         async function initDocView(view, src) {
           const st = { page: 1, rot: 0, token: 0, hits: [] };
@@ -2872,7 +2880,9 @@
           let runs = [];
           for (let n = 1; n <= st.pdf.numPages; n++) {
             const page = await st.pdf.getPage(n);
-            runs = runs.concat(buildRuns((await page.getTextContent()).items, n));
+            runs = runs.concat(
+              buildRuns((await page.getTextContent()).items, n),
+            );
           }
           if (!runs.length) {
             cmp.textContent =
@@ -2883,7 +2893,9 @@
           st.hits = rows.filter((r) => r.hit);
           cmp.innerHTML = rows
             .map(
-              (r) => `<div class="dv-field" ${r.hit ? `data-page="${r.hit.page}" title="Ir para o trecho no documento"` : ""}>
+              (
+                r,
+              ) => `<div class="dv-field" ${r.hit ? `data-page="${r.hit.page}" title="Ir para o trecho no documento"` : ""}>
                 <div class="dv-fh"><b>${esc(r.label)}</b><span class="dv-st dv-${r.st}">${ST_LABEL[r.st]}</span></div>
                 <label>Dados da nota</label><span>${esc(r.nota)}</span>
                 <label>No documento${r.hit && st.pdf.numPages > 1 ? ` (pág. ${r.hit.page})` : ""}</label>
