@@ -1001,6 +1001,40 @@
       .dv-rot:hover {
         background: var(--n-200);
       }
+      .dv-tools {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .dv-zoom {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+      }
+      .dv-zoom button {
+        width: 32px;
+        height: 32px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--n-600);
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .dv-zoom button:hover:not(:disabled) {
+        background: var(--n-200);
+      }
+      .dv-zoom button:disabled {
+        color: var(--n-400);
+        cursor: default;
+      }
+      .dv-zoom-val {
+        min-width: 52px;
+        padding: 0;
+        font-size: 15px !important;
+        text-align: center;
+      }
       .dv-pager {
         display: flex;
         align-items: center;
@@ -1029,13 +1063,14 @@
       }
       .dv-stage {
         display: flex;
-        justify-content: center;
         padding: 0 16px 24px;
         overflow-x: auto;
       }
       .dv-page {
         position: relative;
         flex: none;
+        /* centraliza, mas deixa rolar até a borda esquerda quando ampliado */
+        margin: 0 auto;
         background: #fff;
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
       }
@@ -2641,12 +2676,19 @@
           <div class="dv-card dv-doc">
             <div class="dv-bar">
               <b>Visualizador Expandido do Documento</b>
+              <div class="dv-tools">
+              <div class="dv-zoom">
+                <button type="button" data-zoom="out" aria-label="Diminuir zoom">−</button>
+                <button type="button" class="dv-zoom-val" data-zoom="fit" title="Ajustar à largura">100%</button>
+                <button type="button" data-zoom="in" aria-label="Aumentar zoom">+</button>
+              </div>
               <button type="button" class="dv-rot">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 12a9 9 0 1 1-2.6-6.4" /><path d="M21 3v6h-6" />
                 </svg>
                 Girar
               </button>
+              </div>
             </div>
             <div class="dv-pager">
               <button type="button" data-go="first" aria-label="Primeira página">«</button>
@@ -2821,7 +2863,7 @@
         };
 
         async function initDocView(view, src) {
-          const st = { page: 1, rot: 0, token: 0, hits: [] };
+          const st = { page: 1, rot: 0, zoom: 1, token: 0, hits: [] };
           const cmp = view.querySelector(".dv-cmp");
           try {
             await loadPdfLib();
@@ -2838,7 +2880,7 @@
             const frame = document.createElement("iframe");
             frame.src = encodeURI(src);
             view.querySelector(".dv-pager").remove();
-            view.querySelector(".dv-rot").remove();
+            view.querySelector(".dv-tools").remove();
             view.querySelector(".dv-stage").replaceChildren(frame);
             return;
           }
@@ -2858,6 +2900,34 @@
               }[b.dataset.go],
             );
           });
+          const stage = view.querySelector(".dv-stage");
+          const setZoom = (z) => {
+            z = Math.min(4, Math.max(0.5, Math.round(z * 100) / 100));
+            if (z === st.zoom) return;
+            // mantém no centro da área visível o mesmo ponto do documento
+            st.anchor = [
+              (stage.scrollLeft + stage.clientWidth / 2) / stage.scrollWidth,
+              (stage.scrollTop + stage.clientHeight / 2) / stage.scrollHeight,
+            ];
+            st.zoom = z;
+            renderDocPage(view, st);
+          };
+          view.querySelector(".dv-zoom").addEventListener("click", (ev) => {
+            const b = ev.target.closest("button");
+            if (!b) return;
+            const z = b.dataset.zoom;
+            setZoom(z === "fit" ? 1 : st.zoom * (z === "in" ? 1.25 : 0.8));
+          });
+          // Ctrl + roda do mouse (ou pinça no touchpad) amplia o documento
+          stage.addEventListener(
+            "wheel",
+            (ev) => {
+              if (!ev.ctrlKey) return;
+              ev.preventDefault();
+              setZoom(st.zoom * (ev.deltaY < 0 ? 1.1 : 1 / 1.1));
+            },
+            { passive: false },
+          );
           view.querySelector(".dv-rot").addEventListener("click", () => {
             st.rot = (st.rot + 90) % 360;
             renderDocPage(view, st);
@@ -2911,7 +2981,12 @@
           const page = await st.pdf.getPage(st.page);
           const rotation = (page.rotate + st.rot) % 360;
           const stage = view.querySelector(".dv-stage");
-          const width = Math.min(800, (stage.clientWidth || 832) - 32);
+          const width =
+            Math.min(800, (stage.clientWidth || 832) - 32) * st.zoom;
+          view.querySelector(".dv-zoom-val").textContent =
+            Math.round(st.zoom * 100) + "%";
+          view.querySelector('[data-zoom="out"]').disabled = st.zoom <= 0.5;
+          view.querySelector('[data-zoom="in"]').disabled = st.zoom >= 4;
           const vp = page.getViewport({
             scale: width / page.getViewport({ scale: 1, rotation }).width,
             rotation,
@@ -2930,6 +3005,12 @@
           const sheet = view.querySelector(".dv-page");
           sheet.style.width = vp.width + "px";
           sheet.style.height = vp.height + "px";
+          if (st.anchor) {
+            const [fx, fy] = st.anchor;
+            st.anchor = null;
+            stage.scrollLeft = fx * stage.scrollWidth - stage.clientWidth / 2;
+            stage.scrollTop = fy * stage.scrollHeight - stage.clientHeight / 2;
+          }
           sheet.replaceChildren(canvas);
           // destaques dos campos encontrados nesta página
           st.hits
@@ -3062,6 +3143,70 @@
             setActive(cur);
           },
           { passive: true },
+        );
+
+        // roda do mouse anda de etapa em etapa, como telas; etapas mais altas
+        // que a tela avançam uma tela por vez até o início da próxima
+        let wheelBusyUntil = 0;
+        let wheelQuietUntil = 0;
+        const canScrollInside = (el, dy) => {
+          for (; el && el !== document.body; el = el.parentElement) {
+            const oy = getComputedStyle(el).overflowY;
+            if (
+              (oy === "auto" || oy === "scroll") &&
+              el.scrollHeight > el.clientHeight + 1 &&
+              (dy > 0
+                ? el.scrollTop + el.clientHeight < el.scrollHeight - 1
+                : el.scrollTop > 0)
+            )
+              return true;
+          }
+          return false;
+        };
+        addEventListener(
+          "wheel",
+          (ev) => {
+            if (
+              ev.ctrlKey ||
+              ev.shiftKey ||
+              !ev.deltaY ||
+              Math.abs(ev.deltaX) > Math.abs(ev.deltaY) ||
+              document.querySelector("dialog[open]") ||
+              $("drawer").classList.contains("open") ||
+              ev.target.closest(".leaflet-container") ||
+              canScrollInside(ev.target, ev.deltaY)
+            )
+              return;
+            ev.preventDefault();
+            const now = Date.now();
+            // um gesto (inclusive a inércia do touchpad) conta como um passo só
+            const busy = now < wheelBusyUntil || now < wheelQuietUntil;
+            wheelQuietUntil = now + 180;
+            if (busy) return;
+            const offset = tabsBar.offsetHeight + 8;
+            const stops = [
+              0,
+              ...new Set(
+                sections.map((el) =>
+                  Math.round(el.getBoundingClientRect().top + scrollY - offset),
+                ),
+              ),
+            ].sort((a, b) => a - b);
+            const maxY = document.documentElement.scrollHeight - innerHeight;
+            const screen = Math.max(200, innerHeight - offset - 40);
+            let y;
+            if (ev.deltaY > 0) {
+              const next = stops.find((v) => v > scrollY + 2) ?? maxY;
+              y = Math.min(next, scrollY + screen, maxY);
+            } else {
+              const prev = stops.findLast((v) => v < scrollY - 2) ?? 0;
+              y = Math.max(prev, scrollY - screen, 0);
+            }
+            if (Math.abs(y - scrollY) < 1) return;
+            wheelBusyUntil = now + 650;
+            scrollTo({ top: y, behavior: "smooth" });
+          },
+          { passive: false },
         );
 
         const toggleDrawer = (open) => {
