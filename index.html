@@ -355,13 +355,6 @@
           minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr)
           minmax(0, 1fr);
       }
-      .field .val.hl {
-        font-size: 15px;
-        font-weight: 700;
-        color: var(--inst-700);
-        background: var(--inst-50);
-        border-bottom: 2px solid var(--inst-500);
-      }
       .addr-last {
         grid-column: 1/-1;
         display: grid;
@@ -1051,6 +1044,19 @@
         width: 100%;
         height: 100%;
       }
+      .dv-hl {
+        position: absolute;
+        border-radius: 3px;
+        mix-blend-mode: multiply;
+      }
+      .dv-hl.dv-ok {
+        background: rgba(34, 197, 94, 0.35);
+        outline: 2px solid #127a4c;
+      }
+      .dv-hl.dv-bad {
+        background: rgba(250, 204, 21, 0.45);
+        outline: 2px solid #d97706;
+      }
       .dv-cmp {
         padding: 12px 24px 16px;
         font-size: 15px;
@@ -1505,7 +1511,7 @@
           </div>
           <div class="field">
             <label>Nome do Cliente</label>
-            <div class="val hl" id="solNome">MARIANA SOUZA ALMEIDA</div>
+            <div class="val" id="solNome">MARIANA SOUZA ALMEIDA</div>
           </div>
           <div class="field">
             <label>Instalação</label>
@@ -1528,13 +1534,13 @@
           </div>
           <div class="field">
             <label>Município</label>
-            <div class="val hl" id="endMunicipio">
+            <div class="val" id="endMunicipio">
               Santo Antônio do Jacinto - MG
             </div>
           </div>
           <div class="field">
             <label>Endereço</label>
-            <div class="val hl" id="endEndereco">
+            <div class="val" id="endEndereco">
               ENDERECO RURAL, 99999, AREA RURAL
             </div>
           </div>
@@ -1706,15 +1712,15 @@
         <div class="grid g4 eq-info" data-caixa-tbl="1">
           <div class="field">
             <label>Disjuntor</label>
-            <div class="val hl">MONOPOLAR 63A -</div>
+            <div class="val">MONOPOLAR 63A -</div>
           </div>
           <div class="field">
             <label>Finalidade</label>
-            <div class="val hl">Conexão nova</div>
+            <div class="val">Conexão nova</div>
           </div>
           <div class="field">
             <label>Demanda</label>
-            <div class="val hl">25,6</div>
+            <div class="val">25,6</div>
           </div>
         </div>
         <div class="table-wrap" style="padding: 16px" data-caixa-tbl="2" hidden>
@@ -1779,15 +1785,15 @@
         <div class="grid g4 eq-info" data-caixa-tbl="2" hidden>
           <div class="field">
             <label>Disjuntor</label>
-            <div class="val hl">BIPOLAR 50A -</div>
+            <div class="val">BIPOLAR 50A -</div>
           </div>
           <div class="field">
             <label>Finalidade</label>
-            <div class="val hl">Aumento de carga</div>
+            <div class="val">Aumento de carga</div>
           </div>
           <div class="field">
             <label>Demanda</label>
-            <div class="val hl">3,5</div>
+            <div class="val">3,5</div>
           </div>
         </div>
       </div>
@@ -2815,7 +2821,7 @@
         };
 
         async function initDocView(view, src) {
-          const st = { page: 1, rot: 0, token: 0 };
+          const st = { page: 1, rot: 0, token: 0, hits: [] };
           const cmp = view.querySelector(".dv-cmp");
           try {
             await loadPdfLib();
@@ -2877,6 +2883,7 @@
             return;
           }
           const rows = compareDoc(runs);
+          st.hits = rows.filter((r) => r.hit);
           cmp.innerHTML = rows
             .map(
               (
@@ -2924,6 +2931,27 @@
           sheet.style.width = vp.width + "px";
           sheet.style.height = vp.height + "px";
           sheet.replaceChildren(canvas);
+          // destaques dos campos encontrados nesta página
+          st.hits
+            .filter((r) => r.hit.page === st.page)
+            .forEach((r) =>
+              r.hit.rects.forEach((q) => {
+                const [x1, y1, x2, y2] = vp.convertToViewportRectangle([
+                  q.x,
+                  q.y - q.h * 0.25,
+                  q.x + q.w,
+                  q.y + q.h * 0.9,
+                ]);
+                const hl = document.createElement("div");
+                hl.className = "dv-hl dv-" + r.st;
+                hl.title = `${r.label}: ${ST_LABEL[r.st]}`;
+                hl.style.left = Math.min(x1, x2) - 2 + "px";
+                hl.style.top = Math.min(y1, y2) + "px";
+                hl.style.width = Math.abs(x2 - x1) + 4 + "px";
+                hl.style.height = Math.abs(y2 - y1) + "px";
+                sheet.appendChild(hl);
+              }),
+            );
         }
 
         const toNum = (v) => parseFloat(String(v).replace(",", "."));
