@@ -1051,19 +1051,6 @@
         width: 100%;
         height: 100%;
       }
-      .dv-hl {
-        position: absolute;
-        border-radius: 3px;
-        mix-blend-mode: multiply;
-      }
-      .dv-hl.dv-ok {
-        background: rgba(34, 197, 94, 0.35);
-        outline: 2px solid #127a4c;
-      }
-      .dv-hl.dv-bad {
-        background: rgba(250, 204, 21, 0.45);
-        outline: 2px solid #d97706;
-      }
       .dv-cmp {
         padding: 12px 24px 16px;
         font-size: 15px;
@@ -2828,7 +2815,7 @@
         };
 
         async function initDocView(view, src) {
-          const st = { page: 1, rot: 0, token: 0, hits: [] };
+          const st = { page: 1, rot: 0, token: 0 };
           const cmp = view.querySelector(".dv-cmp");
           try {
             await loadPdfLib();
@@ -2890,7 +2877,6 @@
             return;
           }
           const rows = compareDoc(runs);
-          st.hits = rows.filter((r) => r.hit);
           cmp.innerHTML = rows
             .map(
               (
@@ -2938,27 +2924,6 @@
           sheet.style.width = vp.width + "px";
           sheet.style.height = vp.height + "px";
           sheet.replaceChildren(canvas);
-          // destaques dos campos encontrados nesta página
-          st.hits
-            .filter((r) => r.hit.page === st.page)
-            .forEach((r) =>
-              r.hit.rects.forEach((q) => {
-                const [x1, y1, x2, y2] = vp.convertToViewportRectangle([
-                  q.x,
-                  q.y - q.h * 0.25,
-                  q.x + q.w,
-                  q.y + q.h * 0.9,
-                ]);
-                const hl = document.createElement("div");
-                hl.className = "dv-hl dv-" + r.st;
-                hl.title = `${r.label}: ${ST_LABEL[r.st]}`;
-                hl.style.left = Math.min(x1, x2) - 2 + "px";
-                hl.style.top = Math.min(y1, y2) + "px";
-                hl.style.width = Math.abs(x2 - x1) + 4 + "px";
-                hl.style.height = Math.abs(y2 - y1) + "px";
-                sheet.appendChild(hl);
-              }),
-            );
         }
 
         const toNum = (v) => parseFloat(String(v).replace(",", "."));
